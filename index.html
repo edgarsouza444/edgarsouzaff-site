@@ -210,5 +210,66 @@ const firebaseConfig = {
   appId: "1:689114334414:web:8f9da75267ca0e79c2fc9f"
 };
 
-// Initialize Firebase
+Initialize Firebase
 const app = initializeApp(firebaseConfig);
+<h2>Meu YouTube simples</h2>
+
+<input type="file" id="videoInput" />
+<button onclick="uploadVideo()">Enviar vídeo</button>
+
+<h3>Vídeos:</h3>
+<div id="videoList"></div>
+
+<script>
+async function uploadVideo() {
+  const file = document.getElementById("videoInput").files[0];
+
+  if (!file) {
+    alert("Selecione um vídeo!");
+    return;
+  }
+
+  const storageRef = window.storage;
+  const auth = window.auth;
+
+  const ref = window.storageRef(window.storage, "videos/" + file.name);
+
+  try {
+    await window.uploadBytes(ref, file);
+    const url = await window.getDownloadURL(ref);
+
+    await window.addDoc(window.collection(window.db, "videos"), {
+      url: url,
+      name: file.name,
+      createdAt: Date.now()
+    });
+
+    alert("Vídeo enviado com sucesso!");
+    loadVideos();
+  } catch (e) {
+    console.error(e);
+    alert("Erro ao enviar vídeo");
+  }
+}
+
+async function loadVideos() {
+  const container = document.getElementById("videoList");
+  container.innerHTML = "";
+
+  const querySnapshot = await window.getDocs(window.collection(window.db, "videos"));
+
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+
+    container.innerHTML += `
+      <div style="margin-bottom:20px;">
+        <video width="300" controls src="${data.url}"></video>
+        <p>${data.name}</p>
+      </div>
+    `;
+  });
+}
+
+loadVideos();
+</script>
+// 
